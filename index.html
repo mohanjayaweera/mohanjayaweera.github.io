@@ -1,240 +1,26 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Assortekies — assorted technologies, applications and digital projects.">
 <meta name="referrer" content="strict-origin-when-cross-origin">
-<title>Assortekies YouTube Player Test</title>
-
+<title>Assortekies — Official Home</title>
 <style>
-* { box-sizing: border-box; }
-
-body {
-  margin: 0;
-  padding: 24px;
-  background: #101827;
-  color: #f4f6fa;
-  font-family: Arial, sans-serif;
-}
-
-.container {
-  max-width: 850px;
-  margin: 30px auto;
-  padding: 24px;
-  background: #1d293b;
-  border-radius: 14px;
-}
-
-h1 { color: #8eb8ff; }
-
-input[type="text"] {
-  width: 100%;
-  padding: 13px;
-  margin: 12px 0;
-  border-radius: 7px;
-  border: 1px solid #64748b;
-  font-size: 15px;
-}
-
-button {
-  padding: 12px 20px;
-  border: 0;
-  border-radius: 7px;
-  background: #2563eb;
-  color: white;
-  cursor: pointer;
-  font-size: 15px;
-}
-
-button:disabled {
-  opacity: .45;
-  cursor: not-allowed;
-}
-
-.notice {
-  padding: 16px;
-  margin: 18px 0;
-  background: #29384e;
-  border-radius: 9px;
-  line-height: 1.6;
-}
-
-.notice a { color: #93c5fd; }
-
-.player {
-  width: 100%;
-  aspect-ratio: 16 / 9;
-  margin-top: 22px;
-  background: #000;
-}
-
-.player iframe {
-  width: 100%;
-  height: 100%;
-  border: 0;
-}
-
-#status {
-  margin-top: 16px;
-  color: #fbbf24;
-  overflow-wrap: anywhere;
-}
-
-.small {
-  color: #aab7ca;
-  font-size: 13px;
-  line-height: 1.5;
-}
-</style>
-</head>
-
-<body>
-<main class="container">
-
-<h1>Assortekies YouTube Player Test</h1>
-<p>Official YouTube embedded-player experiment.</p>
-
-<label for="videoUrl">YouTube video URL</label>
-<input
-  id="videoUrl"
-  type="text"
-  placeholder="Paste a YouTube video URL here"
->
-
-<div class="notice">
-  <strong>YouTube Privacy Notice</strong>
-
-  <p>
-    Loading the YouTube player may allow Google and YouTube
-    to receive information such as your IP address, browser
-    and device information, and player interactions.
-  </p>
-
-  <p>
-    We use YouTube's privacy-enhanced embed domain.
-    This does not guarantee zero data collection.
-  </p>
-
-  <p>
-    <a href="https://policies.google.com/privacy"
-       target="_blank" rel="noopener">
-       Google Privacy Policy
-    </a><br>
-
-    <a href="https://www.youtube.com/howyoutubeworks/user-settings/privacy/"
-       target="_blank" rel="noopener">
-       YouTube Privacy Information
-    </a><br>
-
-    <a href="https://developers.google.com/youtube/terms/developer-policies"
-       target="_blank" rel="noopener">
-       YouTube Developer Policies
-    </a>
-  </p>
-
-  <label>
-    <input type="checkbox" id="consent">
-    I understand and agree to load the YouTube player.
-  </label>
-
-  <p class="small">
-    The player will only load after you enter a video URL
-    and explicitly continue.
-  </p>
-</div>
-
-<button id="loadButton" disabled>
-  Load YouTube Player
-</button>
-
-<div id="status" role="status" aria-live="polite">
-  Enter a video URL and accept the privacy notice.
-</div>
-
-<div class="player" id="playerContainer" hidden></div>
-
-<p class="small">
-  This page does not download YouTube videos or extract
-  audio for transcription.
-</p>
-
-</main>
-
-<script>
-const urlInput = document.getElementById("videoUrl");
-const consent = document.getElementById("consent");
-const loadButton = document.getElementById("loadButton");
-const statusBox = document.getElementById("status");
-const playerContainer = document.getElementById("playerContainer");
-
-function getVideoId(value) {
-  try {
-    const url = new URL(value.trim());
-    let id = "";
-
-    if (url.hostname === "youtu.be" ||
-        url.hostname === "www.youtu.be") {
-      id = url.pathname.split("/").filter(Boolean)[0] || "";
-    } else if (
-      ["youtube.com", "www.youtube.com",
-       "m.youtube.com", "youtube-nocookie.com",
-       "www.youtube-nocookie.com"].includes(url.hostname)
-    ) {
-      if (url.pathname === "/watch") {
-        id = url.searchParams.get("v") || "";
-      } else {
-        const match = url.pathname.match(
-          /^\/(?:embed|shorts|live)\/([^/]+)/
-        );
-        id = match ? match[1] : "";
-      }
-    }
-
-    return /^[a-zA-Z0-9_-]{11}$/.test(id) ? id : null;
-  } catch {
-    return null;
-  }
-}
-
-function updateButton() {
-  loadButton.disabled = !consent.checked ||
-                        !getVideoId(urlInput.value);
-}
-
-consent.addEventListener("change", updateButton);
-urlInput.addEventListener("input", updateButton);
-
-loadButton.addEventListener("click", () => {
-  const videoId = getVideoId(urlInput.value);
-
-  if (!videoId || !consent.checked) {
-    statusBox.textContent =
-      "Please enter a valid YouTube URL and accept the notice.";
-    return;
-  }
-
-  playerContainer.replaceChildren();
-
-  const frame = document.createElement("iframe");
-  frame.title = "YouTube video player";
-  frame.src =
-    "https://www.youtube-nocookie.com/embed/" +
-    encodeURIComponent(videoId);
-
-  frame.referrerPolicy = "strict-origin-when-cross-origin";
-  frame.allow =
-    "accelerometer; encrypted-media; gyroscope; " +
-    "picture-in-picture; fullscreen";
-  frame.allowFullscreen = true;
-
-  playerContainer.appendChild(frame);
-  playerContainer.hidden = false;
-
-  statusBox.textContent =
-    "Player requested. Press Play in the YouTube player.";
-});
-</script>
-
-</body>
-</html>
+*{box-sizing:border-box}body{margin:0;background:#101827;color:#f4f6fa;font-family:Arial,sans-serif;line-height:1.6}
+header{padding:22px 7%;border-bottom:1px solid #34445b;background:#172337}header strong{font-size:22px;color:#91b7ff}
+main{max-width:1050px;margin:auto;padding:70px 24px}.hero{padding:42px 34px;border-radius:18px;background:linear-gradient(135deg,#1d293b,#263d5d)}
+h1{font-size:clamp(34px,6vw,54px);line-height:1.1;margin:0 0 18px}p{color:#c5d0df}.eyebrow{color:#9fc2ff;text-transform:uppercase;letter-spacing:.12em;font-size:13px;font-weight:bold}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin-top:28px}
+.card{padding:22px;border:1px solid #34445b;border-radius:12px;background:#19263a}.card h2{margin-top:0;font-size:19px}
+footer{padding:24px;text-align:center;color:#91a0b5;border-top:1px solid #34445b}a{color:#9fc2ff}
+.pill{display:inline-block;padding:7px 12px;border:1px solid #526b8e;border-radius:99px;color:#cfe0ff;font-size:13px}
+</style></head>
+<body><header><strong>Assortekies</strong></header><main>
+<section class="hero"><div class="eyebrow">Assorted Technologies</div><h1>Welcome to Assortekies.</h1>
+<p>A home for useful applications, browser tools, experiments and digital projects.</p>
+<span class="pill">Official website — under development</span></section>
+<section class="grid" aria-label="About Assortekies">
+<article class="card"><h2>About</h2><p>This website is being prepared as the public home for Assortekies and its creator.</p></article>
+<article class="card"><h2>Apps &amp; Projects</h2><p>Information about applications, browser extensions and other creative technology projects will appear here.</p></article>
+<article class="card"><h2>Experiments</h2><p>Dedicated tools and demonstrations will have their own pages, separate from this homepage.</p><p><a href="ytvideoplay.html">Open the Assortekies YouTube Player</a></p></article>
+</section></main><footer>© Assortekies · Official home</footer></body></html>
