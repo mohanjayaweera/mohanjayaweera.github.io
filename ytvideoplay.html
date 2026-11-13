@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<title>Assortekies — YouTube Video Player</title>
+<style>
+*{box-sizing:border-box}body{margin:0;padding:24px;background:#101827;color:#f4f6fa;font-family:Arial,sans-serif}.container{max-width:900px;margin:24px auto;padding:24px;background:#1d293b;border-radius:14px}h1{color:#8eb8ff;margin-top:0}input[type=text]{width:100%;padding:13px;margin:10px 0;border-radius:7px;border:1px solid #64748b;font-size:15px}button{padding:12px 20px;border:0;border-radius:7px;background:#2563eb;color:white;cursor:pointer;font-size:15px}button:disabled{opacity:.45;cursor:not-allowed}.notice{padding:16px;margin:18px 0;background:#29384e;border-radius:9px;line-height:1.6}.notice a{color:#93c5fd}.player{width:100%;aspect-ratio:16/9;margin-top:22px;background:#000;border-radius:8px;overflow:hidden}.player iframe{display:block;width:100%;height:100%;border:0}#status{margin-top:16px;color:#fbbf24;overflow-wrap:anywhere}.small{color:#aab7ca;font-size:13px;line-height:1.5}[hidden]{display:none!important}
+</style></head><body><main class="container">
+<h1>Assortekies YouTube Video Player</h1><p>Official YouTube embedded-player test page.</p>
+<section id="manualControls"><label for="videoUrl">YouTube video URL</label><input id="videoUrl" type="text" placeholder="Paste a YouTube video URL here">
+<div class="notice"><strong>YouTube Privacy Notice</strong>
+<p>Loading the YouTube player may allow Google and YouTube to receive information such as your IP address, browser/device information, and player interactions.</p>
+<p>The privacy-enhanced embed domain can reduce personalization but does not guarantee zero data collection.</p>
+<p><a href="https://policies.google.com/privacy" target="_blank" rel="noopener">Google Privacy Policy</a><br><a href="https://www.youtube.com/howyoutubeworks/user-settings/privacy/" target="_blank" rel="noopener">YouTube Privacy Information</a><br><a href="https://developers.google.com/youtube/terms/developer-policies" target="_blank" rel="noopener">YouTube Developer Policies</a></p>
+<label><input type="checkbox" id="consent"> I understand and agree to load the YouTube player.</label></div><button id="loadButton" disabled>Load YouTube Player</button></section>
+<p id="status" role="status" aria-live="polite">Ready. YouTube content will load only after consent.</p><div class="player" id="playerContainer" hidden></div>
+<p class="small">This page does not download YouTube videos or extract audio. Playback is provided by the official YouTube embedded player.</p></main>
+<script>
+"use strict";
+const urlInput=document.getElementById("videoUrl"),consent=document.getElementById("consent"),loadButton=document.getElementById("loadButton"),statusBox=document.getElementById("status"),playerContainer=document.getElementById("playerContainer"),manualControls=document.getElementById("manualControls");
+function validVideoId(value){return /^[A-Za-z0-9_-]{11}$/.test(value||"");}
+function getVideoId(value){try{const url=new URL(value.trim());if(url.protocol!=="https:")return "";const host=url.hostname.toLowerCase().replace(/^www\./,"");let id="";if(host==="youtu.be"){id=url.pathname.split("/").filter(Boolean)[0]||"";}else if(["youtube.com","m.youtube.com","youtube-nocookie.com"].includes(host)){if(url.pathname==="/watch")id=url.searchParams.get("v")||"";else{const match=url.pathname.match(/^\/(?:embed|shorts|live)\/([^/]+)/);id=match?match[1]:"";}}return validVideoId(id)?id:"";}catch(_){return "";}}
+function loadOfficialPlayer(videoId,consentSource){if(!validVideoId(videoId)){statusBox.textContent="Invalid YouTube video ID.";return;}playerContainer.replaceChildren();const frame=document.createElement("iframe");frame.title="YouTube video player";frame.src="https://www.youtube-nocookie.com/embed/"+encodeURIComponent(videoId);frame.referrerPolicy="strict-origin-when-cross-origin";frame.allow="encrypted-media; picture-in-picture; fullscreen";frame.allowFullscreen=true;playerContainer.appendChild(frame);playerContainer.hidden=false;statusBox.textContent="YouTube player requested after consent ("+consentSource+"). Press Play in the player.";}
+function updateButton(){loadButton.disabled=!consent.checked||!getVideoId(urlInput.value);}consent.addEventListener("change",updateButton);urlInput.addEventListener("input",updateButton);loadButton.addEventListener("click",()=>{const id=getVideoId(urlInput.value);if(!consent.checked||!id){statusBox.textContent="Enter a valid YouTube URL and acknowledge the privacy notice.";return;}loadOfficialPlayer(id,"this page");});
+// The extension redirects here only after its own privacy checkbox and Continue click.
+// This one-time handoff flag is not persisted and is not an account identity.
+const params=new URLSearchParams(window.location.search),handedOffVideoId=params.get("video")||"",handoffConsent=params.get("consent")==="1";
+if(handoffConsent&&validVideoId(handedOffVideoId)){manualControls.hidden=true;statusBox.textContent="Privacy notice acknowledged in Assortekies. Loading the official player.";loadOfficialPlayer(handedOffVideoId,"Assortekies extension consent");}else if(handedOffVideoId||params.has("consent")){statusBox.textContent="The player handoff was incomplete. Use the privacy notice and manual player controls.";}
+</script></body></html>
